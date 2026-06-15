@@ -46,16 +46,31 @@ function getFramePath(index) {
 
 // 2. PRELOAD ALL IMAGES
 function startPreloading() {
-  for (let i = 1; i <= TOTAL_FRAMES; i++) {
-    const img = new Image();
-    img.src = getFramePath(i);
-    img.onload = () => handleImageLoad(i);
-    img.onerror = () => {
-      console.error(`Failed to load image frame at path: ${img.src}`);
-      // Continue loading to not freeze the app
-      handleImageLoad(i);
-    };
-    images.push(img);
+  if (typeof window.BASE64_IMAGES !== 'undefined' && window.BASE64_IMAGES.length > 0) {
+    // Load from injected base64 array
+    window.BASE64_IMAGES.forEach((base64Src, index) => {
+      const img = new Image();
+      img.src = base64Src;
+      img.onload = () => handleImageLoad(index + 1);
+      img.onerror = () => {
+        console.error(`Failed to load base64 frame at index ${index}`);
+        handleImageLoad(index + 1);
+      };
+      images.push(img);
+    });
+  } else {
+    // Fallback to local files
+    for (let i = 1; i <= TOTAL_FRAMES; i++) {
+      const img = new Image();
+      img.src = getFramePath(i);
+      img.onload = () => handleImageLoad(i);
+      img.onerror = () => {
+        console.error(`Failed to load image frame at path: ${img.src}`);
+        // Continue loading to not freeze the app
+        handleImageLoad(i);
+      };
+      images.push(img);
+    }
   }
 }
 
